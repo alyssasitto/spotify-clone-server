@@ -39,6 +39,21 @@ router.get("/recents", (req, res) => {
 		});
 });
 
+// route for getting single album
+router.get("/album/:id", (req, res) => {
+	const id = req.params.id;
+	const spotifyApi = new SpotifyWebApi({ accessToken: req.headers.token });
+
+	spotifyApi
+		.getAlbum(id)
+		.then((response) => {
+			res.status(200).json(response.body);
+		})
+		.catch((err) => {
+			console.log(err);
+		});
+});
+
 // route for getting albums by their id
 router.get("/albums", (req, res) => {
 	const spotifyApi = new SpotifyWebApi({ accessToken: req.headers.token });
@@ -92,6 +107,22 @@ router.get("/new-releases", (req, res) => {
 		});
 });
 
+// route for getting single category
+router.get("/category/:id", (req, res) => {
+	const id = req.params.id;
+	const spotifyApi = new SpotifyWebApi({ accessToken: req.headers.token });
+
+	spotifyApi
+		.getPlaylistsForCategory(id)
+		.then((response) => {
+			console.log(response);
+			res.status(200).json(response.body);
+		})
+		.catch((err) => {
+			console.log(err);
+		});
+});
+
 // route for getting categories
 router.get("/categories", (req, res) => {
 	const spotifyApi = new SpotifyWebApi({ accessToken: req.headers.token });
@@ -111,8 +142,15 @@ router.get("/categories", (req, res) => {
 		});
 });
 
-// route for getting recent playlists
-router.get("/playlists", (req, res) => {
+// route for getting playlists
+// router.get("/playlists", (req, res) => {
+// 	const spotifyApi = new SpotifyWebApi({ accessToken: req.headers.token });
+
+// 	spotifyApi.getpl;
+// });
+
+// route for getting recent user playlists
+router.get("/user-playlists", (req, res) => {
 	console.log("TOKENNNN ====>", req.headers.token);
 
 	const spotifyApi = new SpotifyWebApi({ accessToken: req.headers.token });
@@ -144,16 +182,79 @@ router.get("/playlist/:id", (req, res) => {
 		});
 });
 
-module.exports = router;
+// route for getting current song that's playing
 
-// .then((response) => {
-// 	return axios.get("https://api.spotify.com/v1/browse/new-releases", {
-// 		headers: {
-// 			Authorization: `Bearer ${token}`,
-// 		},
-// 	});
-// })
-// .then((response) => {
-// 	console.log(response);
-// 	res.status(200).json(response.data);
-// })
+router.get("/currently-playing", (req, res) => {
+	const spotifyApi = new SpotifyWebApi({ accessToken: req.headers.token });
+
+	spotifyApi
+		.getMyCurrentPlayingTrack()
+		.then((response) => {
+			res.status(200).json(response);
+		})
+		.catch((err) => {
+			console.log(err);
+		});
+});
+
+// route for getting
+router.get("/queue", (req, res) => {
+	const token = req.headers.token;
+	const spotifyApi = new SpotifyWebApi({ accessToken: req.headers.token });
+
+	axios
+		.get("https://api.spotify.com/v1/me/player/queue", {
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
+		})
+		.then((response) => {
+			res.status(200).json(response.data);
+			console.log(response);
+		})
+		.catch((err) => {
+			console.log(err);
+		});
+});
+
+router.get("/play-song", (req, res) => {
+	const token = req.headers.token;
+	const context_uri = req.headers.context_uri;
+	const track_number = req.headers.track_number;
+
+	const spotifyApi = new SpotifyWebApi({ accessToken: req.headers.token });
+
+	// spotifyApi
+	// 	.play({ context_uri: context_uri }, { offset: track_number })
+	// 	.then((response) => {
+	// 		res.status(200).json("playing");
+	// 	})
+	// 	.catch((err) => {
+	// 		console.log(err);
+	// 	});
+
+	const body = {
+		context_uri: `${context_uri}`,
+		offset: {
+			position: track_number,
+		},
+	};
+
+	axios
+		.put("https://api.spotify.com/v1/me/player/play", body, {
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
+		})
+		.then((response) => {
+			console.log(response);
+			res.status(200).json("song playing");
+		})
+		.catch((err) => {
+			console.log(err);
+		});
+
+	console.log(context_uri, track_number);
+});
+
+module.exports = router;
